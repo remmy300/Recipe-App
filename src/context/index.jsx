@@ -1,42 +1,39 @@
 import { createContext, useState } from "react";
 import PropTypes from "prop-types";
 import axios from "axios";
-import { useQuery } from "@tanstack/react-query";
 
 export const GlobalContext = createContext();
 
 const Context = ({ children }) => {
   const [searchParam, setSearchParam] = useState("");
+  const [recipes, setRecipes] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isError, setIsError] = useState(null);
+  const [error, setError] = useState(null);
 
-  //   Query to fetch data based on serchparam
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    try {
+      setIsLoading(true);
 
-  const {
-    data: recipes,
-    refetch,
-    isLoading,
-    error,
-    isError,
-  } = useQuery({
-    queryKey: ["recipes", searchParam],
-    queryFn: async () => {
       const response = await axios.get(
         `https://forkify-api.herokuapp.com/api/v2/recipes?search=${searchParam}`
       );
-      console.log("Fetched Data:", response.data);
 
-      return response.data;
-    },
+      setRecipes(response.data.data.recipes);
 
-    enabled: false, //disable automatic fetch  trigger on submit
-    staleTime: 0, //ensure the data is always considered stale
-  });
-
-  //submit handler to refetch data based on search
-
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    refetch({ force: true }); //force a fresh fetch
+      setIsError(false);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      setIsError(true);
+      setError(error.message);
+    } finally {
+      setIsLoading(false);
+    }
+    setSearchParam("");
   };
+
+  console.log("Fetched recipes:", recipes);
 
   return (
     <div>

@@ -20,6 +20,7 @@ const NavBar = () => {
             onChange={(e) => setSearchParam(e.target.value)}
             className="bg-white/70 p-3 px-8 outline-none shadow-lg rounded-full lg:w-96 shadow-red-100 focus:shadow-200"
           />
+          <button type="submit">Search</button>
         </form>
         <ul className="flex gap-5">
           <li>
