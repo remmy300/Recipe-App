@@ -13,7 +13,7 @@ const RecipeItem = ({ item }) => {
           />
         </div>
         <div>
-          <span className="font-medium text-cyan-200 text-sm">
+          <span className="font-medium text-cyan-200 text-m">
             {item?.publisher}
           </span>
           <h3 className="font-bold text-black text-2xl">{item?.title}</h3>

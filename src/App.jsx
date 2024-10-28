@@ -1,7 +1,7 @@
 import "./index.css";
 import { Routes, Route } from "react-router-dom";
 import Home from "./Pages/Home";
-import Favourites from "./Pages/Home";
+import Favourites from "./Pages/Favourites";
 import Details from "./Pages/Details";
 import NavBar from "./Component/NavBar";
 

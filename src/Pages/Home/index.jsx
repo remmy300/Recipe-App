@@ -21,7 +21,7 @@ const Home = () => {
         ) : (
           <div>
             <p className="font-semibold text-xl lg:text-4xl text-center text-gray-600">
-              Please Type Something.
+              No recipes found.Please search for a recipe.
             </p>
           </div>
         )}
