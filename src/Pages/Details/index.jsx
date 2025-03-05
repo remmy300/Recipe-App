@@ -64,7 +64,7 @@ const Details = () => {
               {favouriteList &&
               favouriteList.length > 0 &&
               favouriteList.findIndex(
-                (item) => item.id == recipeDetailsData?.id
+                (item) => item.id === recipeDetailsData?.id
               ) !== -1
                 ? "Remove from favourites"
                 : "Add to favourites"}
