@@ -6,6 +6,7 @@ export const GlobalContext = createContext();
 
 const Context = ({ children }) => {
   const [searchParam, setSearchParam] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [recipes, setRecipes] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(null);
@@ -13,48 +14,57 @@ const Context = ({ children }) => {
   const [favouriteList, setFavouriteList] = useState([]);
   const [recipeDetailsData, setRecipeDetailsData] = useState(null);
 
-  useEffect(() => {
-    //load recipes from local storage on mount
-    const stroredRecipes = JSON.parse(localStorage.getItem("recipes"));
-    setRecipes(stroredRecipes);
-  }, []);
+  const fetchRecipes = async (query) => {
+    if (!query) return;
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
     try {
       setIsLoading(true);
-
       const response = await axios.get(
-        `https://forkify-api.herokuapp.com/api/v2/recipes?search=${searchParam}`
+        `https://forkify-api.herokuapp.com/api/v2/recipes?search=${query}`
       );
 
-      setRecipes(response.data?.data?.recipes);
-      //save to local storage
-      localStorage.setItem(
-        "recipes",
-        JSON.stringify(response.data?.data?.recipes)
-      );
-
+      const fetchedRecipes = response.data?.data?.recipes;
+      setRecipes(fetchedRecipes);
+      localStorage.setItem("recipes", JSON.stringify(fetchedRecipes));
       setIsError(false);
-    } catch (error) {
-      console.error("Error fetching data:", error);
+    } catch (err) {
+      console.error("Error fetching recipes:", err);
       setIsError(true);
-      setError(error.message);
+      setError(err.message);
     } finally {
       setIsLoading(false);
     }
-    setSearchParam("");
   };
 
-  const handleAddToFavourites = (getCurrentItem) => {
-    console.log("item passed to handleAddFavourite", getCurrentItem);
-    if (!getCurrentItem || !getCurrentItem.id) {
-      console.error(
-        "Invalid item passed to handleAddToFavourites",
-        getCurrentItem
-      );
-      return;
+  // Load from local storage or default
+  useEffect(() => {
+    const storedRecipes = JSON.parse(localStorage.getItem("recipes"));
+    if (storedRecipes && storedRecipes.length > 0) {
+      setRecipes(storedRecipes);
+    } else {
+      fetchRecipes("pizza");
     }
+  }, []);
+
+  // ⏱️ Debounce effect
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchParam);
+    }, 500); // 500ms delay
+
+    return () => clearTimeout(handler); // clear if user types again
+  }, [searchParam]);
+
+  // Fetch with debounced term
+  useEffect(() => {
+    if (debouncedSearch.trim() !== "") {
+      fetchRecipes(debouncedSearch);
+    }
+  }, [debouncedSearch]);
+
+  const handleAddToFavourites = (getCurrentItem) => {
+    if (!getCurrentItem || !getCurrentItem.id) return;
+
     const cpyFavourites = [...favouriteList];
     const index = cpyFavourites.findIndex(
       (item) => item.id === getCurrentItem.id
@@ -63,34 +73,29 @@ const Context = ({ children }) => {
     if (index === -1) {
       cpyFavourites.push(getCurrentItem);
     } else {
-      cpyFavourites.splice(index, 1); //removing item at the index
+      cpyFavourites.splice(index, 1);
     }
 
     setFavouriteList(cpyFavourites);
-
-    console.log("Updated faourite list:", cpyFavourites);
   };
 
   return (
-    <div>
-      <GlobalContext.Provider
-        value={{
-          setRecipeDetailsData,
-          recipeDetailsData,
-          handleAddToFavourites,
-          searchParam,
-          setSearchParam,
-          handleSubmit,
-          favouriteList,
-          isLoading,
-          isError,
-          recipes,
-          error,
-        }}
-      >
-        {children}
-      </GlobalContext.Provider>
-    </div>
+    <GlobalContext.Provider
+      value={{
+        setRecipeDetailsData,
+        recipeDetailsData,
+        handleAddToFavourites,
+        searchParam,
+        setSearchParam,
+        favouriteList,
+        isLoading,
+        isError,
+        recipes,
+        error,
+      }}
+    >
+      {children}
+    </GlobalContext.Provider>
   );
 };
 
